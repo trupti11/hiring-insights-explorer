@@ -236,6 +236,16 @@ export type Database = {
         }
         Relationships: []
       }
+      recruitment_stage_delays: {
+        Row: {
+          avg_delay_days: number | null
+          current_stage: string | null
+          max_delay_days: number | null
+          next_stage: string | null
+          transition_count: number | null
+        }
+        Relationships: []
+      }
       slowest_hiring_cycles: {
         Row: {
           avg_time_to_hire_days: number | null

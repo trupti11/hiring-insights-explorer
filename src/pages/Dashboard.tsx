@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { KpiCard } from "@/components/ui/kpi-card";
 import { ThumbsDown, MessageSquare, ClipboardList, Star } from "lucide-react";
+import { BottleneckAlertPanel } from "@/components/recruitment/BottleneckAlertPanel";
 
 interface DepartmentData {
   department: string;
@@ -120,6 +121,12 @@ const Dashboard = () => {
               icon={<MessageSquare size={20} />}
             />
           </div>
+        </div>
+
+        {/* Bottleneck Alert Panel */}
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-4">Recruitment Process Bottlenecks</h2>
+          <BottleneckAlertPanel />
         </div>
 
         {/* Time-to-Hire Analysis */}
