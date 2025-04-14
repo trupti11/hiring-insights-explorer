@@ -1,9 +1,12 @@
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ChartContainer } from "@/components/ui/chart";
 import { TimeToHireChart } from "@/components/charts/TimeToHireChart";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { KpiCard } from "@/components/ui/kpi-card";
+import { ThumbsDown, MessageSquare, ClipboardList, Star } from "lucide-react";
 
 interface DepartmentData {
   department: string;
@@ -11,34 +14,70 @@ interface DepartmentData {
   num_hires: number;
 }
 
+interface OnboardingSurveyData {
+  topic: string;
+  department_count: number;
+  negative_mentions: number;
+}
+
 const Dashboard = () => {
   const [departmentData, setDepartmentData] = useState<DepartmentData[]>([]);
+  const [onboardingData, setOnboardingData] = useState<OnboardingSurveyData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchTimeToHireData = async () => {
+    const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        const { data, error } = await supabase
+        
+        // Fetch time-to-hire data
+        const timeToHireResponse = await supabase
           .from('slowest_hiring_cycles')
           .select('department, avg_time_to_hire_days, num_hires');
 
-        if (error) throw error;
+        // Fetch onboarding survey data
+        const onboardingResponse = await supabase
+          .from('onboarding_survey_kg')
+          .select('topic, department_count, negative_mentions');
 
-        if (data) {
-          setDepartmentData(data as DepartmentData[]);
+        if (timeToHireResponse.error) throw timeToHireResponse.error;
+        if (onboardingResponse.error) throw onboardingResponse.error;
+
+        if (timeToHireResponse.data) {
+          setDepartmentData(timeToHireResponse.data as DepartmentData[]);
+        }
+        
+        if (onboardingResponse.data) {
+          setOnboardingData(onboardingResponse.data as OnboardingSurveyData[]);
         }
       } catch (error) {
-        console.error("Error fetching time-to-hire data:", error);
+        console.error("Error fetching dashboard data:", error);
         setError("Failed to load dashboard data");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTimeToHireData();
+    fetchDashboardData();
   }, []);
+
+  // Calculate summary metrics for KPI cards
+  const totalNegativeMentions = onboardingData.reduce((sum, item) => 
+    sum + (item.negative_mentions || 0), 0);
+  
+  const totalDepartments = [...new Set(onboardingData.map(item => item.department_count))].length;
+  
+  const mostCommonTopic = onboardingData.length > 0 
+    ? onboardingData.reduce((prev, current) => 
+        (current.negative_mentions || 0) > (prev.negative_mentions || 0) ? current : prev
+      ).topic 
+    : "N/A";
+
+  const topIssueCount = onboardingData.length > 0 
+    ? onboardingData.reduce((prev, current) => 
+        Math.max(prev, current.negative_mentions || 0), 0)
+    : 0;
 
   return (
     <div className="container mx-auto p-6">
@@ -48,6 +87,42 @@ const Dashboard = () => {
       </header>
 
       <div className="grid gap-6">
+        {/* Onboarding Survey KPI Cards */}
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-4">Onboarding Survey Insights</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <KpiCard 
+              title="Total Negative Mentions" 
+              value={loading ? "Loading..." : totalNegativeMentions}
+              description="Issues reported during onboarding"
+              colorScheme="red" 
+              icon={<ThumbsDown size={20} />}
+            />
+            <KpiCard 
+              title="Departments with Issues" 
+              value={loading ? "Loading..." : totalDepartments}
+              description="Departments requiring attention"
+              colorScheme="blue"
+              icon={<ClipboardList size={20} />} 
+            />
+            <KpiCard 
+              title="Top Issue" 
+              value={loading ? "Loading..." : mostCommonTopic}
+              description={`${topIssueCount} mentions`}
+              colorScheme="purple"
+              icon={<Star size={20} />} 
+            />
+            <KpiCard 
+              title="Survey Responses" 
+              value={loading ? "Loading..." : onboardingData.length}
+              description="Total feedback submissions"
+              colorScheme="green"
+              icon={<MessageSquare size={20} />}
+            />
+          </div>
+        </div>
+
+        {/* Time-to-Hire Analysis */}
         <div className="rounded-lg border bg-card p-6">
           <div className="flex items-center justify-between mb-4">
             <div>

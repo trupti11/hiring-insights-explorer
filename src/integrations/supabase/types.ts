@@ -228,6 +228,14 @@ export type Database = {
       }
     }
     Views: {
+      onboarding_survey_kg: {
+        Row: {
+          department_count: number | null
+          negative_mentions: number | null
+          topic: string | null
+        }
+        Relationships: []
+      }
       slowest_hiring_cycles: {
         Row: {
           avg_time_to_hire_days: number | null
