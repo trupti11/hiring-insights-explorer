@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ChartContainer } from "@/components/ui/chart";
@@ -22,16 +21,13 @@ const Dashboard = () => {
       try {
         setLoading(true);
         const { data, error } = await supabase
-          .from("slowest_hiring_cycles")
-          .select("department, avg_time_to_hire_days, num_hires")
-          .order("department");
+          .from('slowest_hiring_cycles')
+          .select('department, avg_time_to_hire_days, num_hires');
 
-        if (error) {
-          throw error;
-        }
+        if (error) throw error;
 
         if (data) {
-          setDepartmentData(data);
+          setDepartmentData(data as DepartmentData[]);
         }
       } catch (error) {
         console.error("Error fetching time-to-hire data:", error);

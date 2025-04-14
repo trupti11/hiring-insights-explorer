@@ -228,7 +228,36 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      slowest_hiring_cycles: {
+        Row: {
+          avg_time_to_hire_days: number | null
+          department: string | null
+          num_hires: number | null
+        }
+        Relationships: []
+      }
+      time_to_hire_turnover_corr_part_a: {
+        Row: {
+          candidate_id: string | null
+          time_to_hire_days: number | null
+          turnover_flag: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hiring_events_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["candidate_id"]
+          },
+        ]
+      }
+      time_to_hire_turnover_corr_part_b: {
+        Row: {
+          correlation_coefficient: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
